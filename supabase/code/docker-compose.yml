@@ -74,12 +74,17 @@ services:
       - ./volumes/snippets:/app/snippets:Z
       - ./volumes/functions:/app/edge-functions:Z
 
-  kong:
+  # Genesis: o serviço NÃO se chama "kong". O EasyPanel liga este serviço à rede compartilhada
+  # "easypanel" com o nome do serviço como apelido; com "kong", ele disputava o nome com o kong da
+  # LojistaCar e a Evolution mandou avisos da LojistaCar para o Genesis (24/11/2026). Dentro da rede
+  # do próprio Genesis o apelido "kong" continua (as funções e o banco chamam http://kong:8000).
+  genesis-kong:
     image: kong/kong:3.9.1
     restart: unless-stopped
     networks:
       default:
         aliases:
+          - kong
           - api-gw
     healthcheck:
       test: [ "CMD", "kong", "health" ]
@@ -432,7 +437,7 @@ services:
       - ./volumes/functions:/home/deno/functions:Z
       - deno-cache:/root/.cache/deno
     depends_on:
-      kong:
+      genesis-kong:
         condition: service_healthy
     environment:
       # Legacy symmetric HS256 key
